@@ -26,26 +26,44 @@ def extract_instructor_name(browser):
         return None
 
 
-def extract_references(browser, ):
+def extract_prerequisites(browser: webdriver.Firefox):
     pass
+
+
+def extract_references(browser: webdriver.Firefox):
+    pass
+
+
+def extract_description(browser: webdriver.Firefox):
+    try:
+        return browser.find_element_by_css_selector(".section--description .section__content").text
+    except:
+        return None
 
 
 def extract_courses_info(browser, department_name):
     course_dict = {
-        "Course title": browser.find_element_by_css_selector(".col-8").text,
-        "Department": department_name,
+        "University": None,
         "Abbreviation": "BROWN",
+        "Department": department_name,
+        "Course title": browser.find_element_by_css_selector(".col-8").text,
         "Professor": extract_instructor_name(browser),
+        "Objective": None,
+        "Prerequisite": None,
+        "Required Skills": None,
+        "Outcome": None,
+        "References": None,
+        "Scores": None,
+        "Description": extract_description(browser),
+        "Projects": None,
+        "University Homepage": "https://www.brown.edu/",
+        "Course Homepage": None,
         "Professor Homepage": extract_instructor_email(browser),
-        "Prerequisite": "as",
-        "Description": "Description",
-        "References": "References"
     }
-
     return course_dict
 
 
-def clrawl_department(browser, name):
+def crawl_department(browser, name):
     temp_result = []
     time.sleep(0.5)
     panel = browser.find_element_by_css_selector("div.panel__body:nth-child(3)")
@@ -58,20 +76,24 @@ def clrawl_department(browser, name):
 
 def new_crawler(i):
     browser = webdriver.Firefox()
-    browser.get(start)
-    browser.find_element_by_xpath("//select[@id='crit-srcdb']/option[text()='Spring 2021']").click()
+    try:
+        browser.get(start)
+        browser.find_element_by_xpath("//select[@id='crit-srcdb']/option[text()='Spring 2021']").click()
 
-    select_box_for_text = browser.find_element_by_xpath("//select[@id='crit-dept']")
+        select_box_for_text = browser.find_element_by_xpath("//select[@id='crit-dept']")
 
-    options = [x for x in select_box_for_text.find_elements_by_tag_name("option")]
-    option = options[i + 1]
-    browser.execute_script("document.getElementById('crit-dept').value = '{}'".format(option.get_attribute("value")))
-    browser.execute_script("document.getElementById('search-button-sticky').click()")
-    temp_result = clrawl_department(browser, option.text)
+        options = [x for x in select_box_for_text.find_elements_by_tag_name("option")]
+        option = options[i]
+        browser.execute_script(
+            "document.getElementById('crit-dept').value = '{}'".format(option.get_attribute("value")))
+        browser.execute_script("document.getElementById('search-button-sticky').click()")
+        temp_result = crawl_department(browser, option.text)
+        browser.close()
+        return temp_result
+    except Exception as e:
+        browser.close()
+        return []
 
-    browser.close()
-    return temp_result
 
-
-result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(1, 10))
+result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(1, 2))
 print(result)
