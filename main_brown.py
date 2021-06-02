@@ -1,12 +1,9 @@
-import multiprocessing
 import time
 
 from joblib import Parallel, delayed
 from selenium import webdriver
-from selenium.webdriver.support.ui import Select
 
 start = "https://cab.brown.edu/"
-result = []
 
 
 def extract_instructor_email(browser):
@@ -45,16 +42,18 @@ def extract_courses_info(browser, department_name):
         "References": "References"
     }
 
-    result.append(course_dict)
+    return course_dict
 
 
 def clrawl_department(browser, name):
+    temp_result = []
     time.sleep(0.5)
     panel = browser.find_element_by_css_selector("div.panel__body:nth-child(3)")
     for temp_course in panel.find_elements_by_css_selector("div.result")[:-1]:
         temp_course.find_element_by_class_name("result__title").click()
         time.sleep(0.5)
-        extract_courses_info(browser, name)
+        temp_result.append(extract_courses_info(browser, name))
+    return temp_result
 
 
 def new_crawler(i):
@@ -63,20 +62,16 @@ def new_crawler(i):
     browser.find_element_by_xpath("//select[@id='crit-srcdb']/option[text()='Spring 2021']").click()
 
     select_box_for_text = browser.find_element_by_xpath("//select[@id='crit-dept']")
-    select_box = Select(select_box_for_text)
-    # if your select_box has a name.. why use xpath?.....
-    # this step could use either xpath or name, but name is sooo much easier.
 
     options = [x for x in select_box_for_text.find_elements_by_tag_name("option")]
     option = options[i + 1]
     browser.execute_script("document.getElementById('crit-dept').value = '{}'".format(option.get_attribute("value")))
     browser.execute_script("document.getElementById('search-button-sticky').click()")
-    clrawl_department(browser, option.text)
+    temp_result = clrawl_department(browser, option.text)
 
     browser.close()
+    return temp_result
 
-    return result
 
-
-result_list = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(1, 10))
-print(result_list)
+result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(1, 10))
+print(result)
