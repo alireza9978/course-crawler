@@ -1,22 +1,22 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
 
-# start = "https://sims.erp.sfu.ca/psc/csprd/EMPLOYEE/SA/c/COMMUNITY_ACCESS.SSS_BROWSE_CATLG.GBL"
-start = "https://sims.erp.sfu.ca/psc/csprd/EMPLOYEE/SA/s/WEBLIB_SFU.ISCRIPT1.FieldFormula.IScript_CASSignin"
+start = "https://cab.brown.edu/"
 
-browser = webdriver.Firefox()
+browser = webdriver.Firefox(executable_path=r'C:\geckodriver.exe')
 browser.get(start)
 
-elem = browser.find_element_by_xpath("/html/body/div/div[3]/div[1]/div/div[1]/ul/li[2]/a")
-elem.click()
+select = Select(browser.find_element_by_id("seligo-container"))
+select.select_by_index(0)
+select.select_by_visible_text('Africana Studies')
+# elem = browser.find_element_by_id()
+# elem.click()
 
-browser.switch_to.frame('ptifrmtgtframe')
-
-elem = browser.find_element_by_xpath('//*[@id="DERIVED_SSS_BCC_SSR_ALPHANUM_M"]')
-elem.click()
+# browser.switch_to.frame('ptifrmtgtframe')
+#
+# elem = browser.find_element_by_xpath('//*[@id="DERIVED_SSS_BCC_SSR_ALPHANUM_M"]')
+# elem.click()
 
 # browser.execute_script("submitAction_win0(document.win0,'DERIVED_SSS_BCC_SSR_ALPHANUM_M');")
 
 # browser.quit()
-
-
