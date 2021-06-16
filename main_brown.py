@@ -1,5 +1,7 @@
 import time
-
+from functools import reduce
+import datetime
+import pandas as pd
 from joblib import Parallel, delayed
 from selenium import webdriver
 
@@ -95,5 +97,7 @@ def new_crawler(i):
         return []
 
 
-result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(1, 2))
-print(result)
+result = Parallel(n_jobs=2)(delayed(new_crawler)(i) for i in range(1, 3))
+result = reduce(lambda x, y: x + y, result)
+result = pd.DataFrame(result)
+result.to_csv("brown_courses_{}.csv".format(str(datetime.datetime.now())), index=False)
