@@ -1,6 +1,7 @@
+import datetime
 import time
 from functools import reduce
-import datetime
+
 import pandas as pd
 from joblib import Parallel, delayed
 from selenium import webdriver
@@ -12,10 +13,17 @@ def extract_instructor_email(browser):
     try:
         temp_result = []
         for temp_ins in browser.find_elements_by_class_name("instructor"):
-            temp_result.append(temp_ins.find_element_by_css_selector(".instructor-detail h4 a").text)
+            temp_result.append(
+                temp_ins.find_element_by_css_selector(".instructor-info > a:nth-child(2)").get_attribute("href"))
         return temp_result
     except:
-        return None
+        try:
+            temp_result = []
+            for temp_ins in browser.find_elements_by_class_name("instructor"):
+                temp_result.append(temp_ins.find_element_by_css_selector(".instructor-detail h4 a").text)
+            return temp_result
+        except:
+            return None
 
 
 def extract_instructor_name(browser):
@@ -45,7 +53,7 @@ def extract_description(browser: webdriver.Firefox):
 
 def extract_courses_info(browser, department_name):
     course_dict = {
-        "University": None,
+        "University": "Brown University",
         "Abbreviation": "BROWN",
         "Department": department_name,
         "Course title": browser.find_element_by_css_selector(".col-8").text,
@@ -68,11 +76,20 @@ def extract_courses_info(browser, department_name):
 def crawl_department(browser, name):
     temp_result = []
     time.sleep(0.5)
-    panel = browser.find_element_by_css_selector("div.panel__body:nth-child(3)")
-    for temp_course in panel.find_elements_by_css_selector("div.result")[:-1]:
-        temp_course.find_element_by_class_name("result__title").click()
-        time.sleep(0.5)
-        temp_result.append(extract_courses_info(browser, name))
+    try:
+        panel = browser.find_element_by_css_selector("div.panel__body:nth-child(3)")
+        for temp_course in panel.find_elements_by_css_selector("div.result")[:-1]:
+            try:
+                temp_course.find_element_by_class_name("result__title").click()
+                time.sleep(0.5)
+                info = extract_courses_info(browser, name)
+                if info is not None:
+                    temp_result.append(info)
+            except Exception as e:
+                pass
+    except Exception as e:
+        pass
+
     return temp_result
 
 
@@ -93,11 +110,13 @@ def new_crawler(i):
         browser.close()
         return temp_result
     except Exception as e:
+        print("error in " + str(i))
+        print(e)
         browser.close()
         return []
 
 
-result = Parallel(n_jobs=2)(delayed(new_crawler)(i) for i in range(1, 3))
+result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(24, 28))
 result = reduce(lambda x, y: x + y, result)
 result = pd.DataFrame(result)
 result.to_csv("brown_courses_{}.csv".format(str(datetime.datetime.now())), index=False)
