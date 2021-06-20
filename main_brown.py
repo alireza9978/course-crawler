@@ -37,7 +37,13 @@ def extract_instructor_name(browser):
 
 
 def extract_prerequisites(browser: webdriver.Firefox):
-    pass
+    try:
+        temp_result = []
+        for temp_element in browser.find_elements_by_css_selector("p.prereq a"):
+            temp_result.append(temp_element.get_attribute("data-group").split(":")[-1])
+        return temp_result
+    except:
+        pass
 
 
 def extract_references(browser: webdriver.Firefox):
@@ -70,7 +76,7 @@ def extract_courses_info(browser, department_name):
         "Course title": browser.find_element_by_css_selector(".col-8").text,
         "Professor": extract_instructor_name(browser),
         "Objective": None,
-        "Prerequisite": None,
+        "Prerequisite": extract_prerequisites(browser),
         "Required Skills": None,
         "Outcome": None,
         "References": extract_references(browser=browser),
