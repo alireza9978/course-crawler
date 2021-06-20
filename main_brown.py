@@ -37,7 +37,13 @@ def extract_instructor_name(browser):
 
 
 def extract_prerequisites(browser: webdriver.Firefox):
-    pass
+    try:
+        temp_result = []
+        for temp_element in browser.find_elements_by_css_selector("p.prereq a"):
+            temp_result.append(temp_element.get_attribute("data-group").split(":")[-1])
+        return temp_result
+    except:
+        pass
 
 
 def extract_references(browser: webdriver.Firefox):
@@ -59,7 +65,7 @@ def extract_courses_info(browser, department_name):
         "Course title": browser.find_element_by_css_selector(".col-8").text,
         "Professor": extract_instructor_name(browser),
         "Objective": None,
-        "Prerequisite": None,
+        "Prerequisite": extract_prerequisites(browser),
         "Required Skills": None,
         "Outcome": None,
         "References": None,
@@ -116,7 +122,7 @@ def new_crawler(i):
         return []
 
 
-result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(24, 28))
+result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(16, 17))
 result = reduce(lambda x, y: x + y, result)
 result = pd.DataFrame(result)
 result.to_csv("brown_courses_{}.csv".format(str(datetime.datetime.now())), index=False)
