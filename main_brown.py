@@ -41,7 +41,18 @@ def extract_prerequisites(browser: webdriver.Firefox):
 
 
 def extract_references(browser: webdriver.Firefox):
-    pass
+    try:
+        resources = []
+        for element in browser.find_elements_by_css_selector("table.booktable tbody tr td"):
+            if element.get_attribute("role") == 'rowheader':
+                resources.append(element.text)
+        return resources
+    except:
+        try:
+            return browser.find_element_by_css_selector(".detail-resources_critical_review_html a").get_attribute(
+                "href")
+        except:
+            return None
 
 
 def extract_description(browser: webdriver.Firefox):
@@ -62,7 +73,7 @@ def extract_courses_info(browser, department_name):
         "Prerequisite": None,
         "Required Skills": None,
         "Outcome": None,
-        "References": None,
+        "References": extract_references(browser=browser),
         "Scores": None,
         "Description": extract_description(browser),
         "Projects": None,
@@ -116,7 +127,7 @@ def new_crawler(i):
         return []
 
 
-result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(24, 28))
+result = Parallel(n_jobs=1)(delayed(new_crawler)(i) for i in range(26, 27))
 result = reduce(lambda x, y: x + y, result)
 result = pd.DataFrame(result)
 result.to_csv("brown_courses_{}.csv".format(str(datetime.datetime.now())), index=False)
